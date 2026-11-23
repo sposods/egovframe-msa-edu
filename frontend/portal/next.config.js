@@ -11,6 +11,9 @@ const socialLoginEnabled = process.env.SOCIAL_LOGIN_ENABLED || 'false'
 
 module.exports = {
   i18n,
+  eslint: {
+    ignoreDuringBuilds: true, // ▼ 빌드 시 구버전 ESLint 에러 무시 설정 추가
+  },
   env: {
     PORT: port,
     PROXY_HOST: process.env.PROXY_HOST || `http://localhost:${port}`,
