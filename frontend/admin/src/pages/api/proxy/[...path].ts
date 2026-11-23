@@ -10,34 +10,29 @@ import {
 import axios from 'axios'
 import Cookies from 'cookies'
 import { NextApiRequest, NextApiResponse } from 'next'
-import url from 'url'
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  const pathname = url.pathToFileURL(req.url).pathname
-  let isLogin = pathname === '/api/proxy/user-service/login'
+  const rawUrl = req.url || ''
+  let targetUrl = rawUrl.replace(/^\/api\/proxy/, '')
 
-  req.url = req.url.replace(/^\/api\/proxy/, '')
-
-  if (pathname.indexOf('undefined') > -1) {
+  if (!targetUrl || targetUrl.indexOf('undefined') > -1) {
     res.status(500).json({ message: DEFAULT_ERROR_MESSAGE })
     res.end()
     return
   }
 
-  let headers = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   }
-  headers[CUSTOM_HEADER_SITE_ID_KEY] = SITE_ID
+  headers[CUSTOM_HEADER_SITE_ID_KEY] = SITE_ID || '1'
 
-  //silent refresh
-  if (pathname.indexOf('/refresh') > -1) {
-    isLogin = true
+  // silent refresh
+  if (targetUrl.indexOf('/refresh') > -1) {
     const cookies = new Cookies(req, res)
-    headers[CLAIM_NAME] = cookies.get(REFRESH_TOKEN)
+    headers[CLAIM_NAME] = cookies.get(REFRESH_TOKEN) || ''
+    targetUrl = '/user-service/api/v1/users/token/refresh'
 
-    req.url = '/user-service/api/v1/users/token/refresh'
-
-    if (!headers[CLAIM_NAME] || headers[CLAIM_NAME] === '') {
+    if (!headers[CLAIM_NAME]) {
       console.warn(`can't refresh`)
       res.status(401).json({ message: 'Invalid Credentials 🥺' })
       res.end()
@@ -45,16 +40,23 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     }
   }
 
-  // server API 에 쿠키를 전달하지 않음.
+  // server API 에 쿠키를 전달하지 않음
   req.headers.cookie = ''
-  req.headers[CUSTOM_HEADER_SITE_ID_KEY] = SITE_ID
-  console.info(`req.url : ${req.url}`)
+  console.info(`targetUrl : ${targetUrl}`)
+
+  // GET/HEAD 이외의 요청만 body를 JSON 문자열로 직렬화하여 전달
+  const hasBody = req.method !== 'GET' && req.method !== 'HEAD' && req.body !== undefined && req.body !== ''
+  const requestBody = hasBody
+    ? typeof req.body === 'string'
+      ? req.body
+      : JSON.stringify(req.body)
+    : undefined
 
   try {
-    const result = await fetch(`${SERVER_API_URL}${req.url}`, {
+    const result = await fetch(`${SERVER_API_URL}${targetUrl}`, {
       method: req.method,
       headers,
-      body: req.body,
+      ...(requestBody ? { body: requestBody } : {}),
     })
 
     if (result) {
@@ -63,17 +65,19 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       const userId = result.headers.get(AUTH_USER_ID)
       const cookies = new Cookies(req, res)
 
-      cookies.set(REFRESH_TOKEN, refreshToken, {
-        httpOnly: true,
-        sameSite: 'lax', //CSRF protection
-      })
+      if (refreshToken) {
+        cookies.set(REFRESH_TOKEN, refreshToken, {
+          httpOnly: true,
+          sameSite: 'lax', // CSRF protection
+        })
+      }
 
       if (accessToken) {
-        let payload = {}
+        const payload: Record<string, string | null> = {}
         payload[ACCESS_TOKEN] = accessToken
         payload[AUTH_USER_ID] = userId
         axios.defaults.headers.common[CLAIM_NAME] = accessToken
-        axios.defaults.headers.common[AUTH_USER_ID] = userId
+        axios.defaults.headers.common[AUTH_USER_ID] = userId || ''
 
         res.status(200).json(payload)
       } else {
@@ -83,8 +87,9 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       res.status(401).json({ message: 'Invalid Credentials 🥺' })
     }
     res.end()
-  } catch (error) {
-    res.status(500).json({ message: DEFAULT_ERROR_MESSAGE, error })
+  } catch (error: any) {
+    console.error(error)
+    res.status(500).json({ message: DEFAULT_ERROR_MESSAGE, error: error?.message })
     res.end()
   }
 }
