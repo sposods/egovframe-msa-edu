@@ -1,28 +1,17 @@
 {
-  "name": "msa-template-portal",
+  "name": "msa-template-admin",
   "version": "0.1.0",
   "private": true,
-  "engines": {
-    "node": "14.8.0",
-    "npm": "6.14.7"
-  },
   "scripts": {
-    "dev": "ts-node --transpile-only --project tsconfig.server.json server/index.ts",
-    "dev:sm": "SITE_ID=3 npm run dev",
-    "dev:lg": "SITE_ID=2 npm run dev",
-    "dev:smWin": "set SITE_ID=3&&npm run dev",
-    "dev:lgWin": "set SITE_ID=2&&npm run dev",
-    "build": "NODE_ENV=production next build",
-    "prebuild": "rimraf ./next",
-    "build:prodlg": "env-cmd -f ./.env.production-lg npm run build",
-    "start:prodlg": "env-cmd -f ./.env.production-lg npm run start",
-    "build:prodsm": "env-cmd -f ./.env.production-sm npm run build",
-    "start:prodsm": "env-cmd -f ./.env.production-sm npm run start",
-    "build:prodk8slg": "env-cmd -f ./.env.production-k8s-lg npm run build",
-    "start:prodk8slg": "env-cmd -f ./.env.production-k8s-lg npm run start",
-    "build:prodk8ssm": "env-cmd -f ./.env.production-k8s-sm npm run build",
-    "start:prodk8ssm": "env-cmd -f ./.env.production-k8s-sm npm run start",
-    "start": "NODE_ENV=production next start",
+    "start:dev": "next",
+    "dev": "ts-node --project tsconfig.server.json server/index.ts",
+    "dev:sm": "SITE_ID=4 npm run dev",
+    "dev:lg": "SITE_ID=1 npm run dev",
+    "dev:smWin": "set SITE_ID=4&&npm run dev",
+    "dev:lgWin": "set SITE_ID=1&&npm run dev",
+    "clean:dev": "rimraf .next",
+    "build": "next build",
+    "start": "next start",
     "test": "jest --coverage"
   },
   "dependencies": {
