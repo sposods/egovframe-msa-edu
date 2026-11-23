@@ -12,6 +12,9 @@ const port = process.env.PORT || '3000'
 
 const nextConfig = {
   i18n,
+  eslint: {
+    ignoreDuringBuilds: true, // ▼ 빌드 시 구버전 ESLint 에러 무시 설정 추가
+  },
   env: {
     SERVER_API_URL: serverApiUrl,
     PORT: port,
