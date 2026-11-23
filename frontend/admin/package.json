@@ -2,10 +2,6 @@
   "name": "msa-template-admin",
   "version": "0.1.0",
   "private": true,
-  "engines": {
-    "node": "14.8.0",
-    "npm": "6.14.7"
-  },
   "scripts": {
     "start:dev": "next",
     "dev": "ts-node --project tsconfig.server.json server/index.ts",
@@ -14,19 +10,8 @@
     "dev:smWin": "set SITE_ID=4&&npm run dev",
     "dev:lgWin": "set SITE_ID=1&&npm run dev",
     "clean:dev": "rimraf .next",
-    "build:server": "tsc --project tsconfig.server.json",
-    "build:next": "next build",
-    "prebuild": "rimraf ./dist .next",
-    "build": "npm run build:next && npm run build:server",
-    "build:prodlg": "env-cmd -f ./.env.production-lg npm run build:next && npm run build:server",
-    "start:prodlg": "env-cmd -f ./.env.production-lg node dist/index.js",
-    "build:prodsm": "env-cmd -f ./.env.production-sm npm run build:next && npm run build:server",
-    "start:prodsm": "env-cmd -f ./.env.production-sm node dist/index.js",
-    "build:prodk8slg": "env-cmd -f ./.env.production-k8s-lg npm run build:next && npm run build:server",
-    "start:prodk8slg": "env-cmd -f ./.env.production-k8s-lg node dist/index.js",
-    "build:prodk8ssm": "env-cmd -f ./.env.production-k8s-sm npm run build:next && npm run build:server",
-    "start:prodk8ssm": "env-cmd -f ./.env.production-k8s-sm node dist/index.js",
-    "start": "NODE_ENV=production node dist/index.js",
+    "build": "next build",
+    "start": "next start",
     "test": "jest --coverage"
   },
   "dependencies": {
